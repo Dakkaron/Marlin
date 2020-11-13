@@ -794,11 +794,12 @@
 //
 // Add the G35 command to read bed corners to help adjust screws. Requires a bed probe.
 //
-//#define ASSISTED_TRAMMING
+#define ASSISTED_TRAMMING
 #if ENABLED(ASSISTED_TRAMMING)
 
   // Define positions for probing points, use the hotend as reference not the sensor.
-  #define TRAMMING_POINT_XY { {  20, 20 }, { 200,  20 }, { 200, 200 }, { 20, 200 } }
+  //#define TRAMMING_POINT_XY { {  20, 0 }, { 214,  0 }, { 20, 208 }, { 214, 208 } }
+  #define TRAMMING_POINT_XY { {  30, 10 }, { 200,  10 }, { 30, 200 }, { 200, 200 } }
 
   // Define positions names for probing points.
   #define TRAMMING_POINT_NAME_1 "Front-Left"
@@ -806,7 +807,7 @@
   #define TRAMMING_POINT_NAME_3 "Back-Right"
   #define TRAMMING_POINT_NAME_4 "Back-Left"
 
-  #define RESTORE_LEVELING_AFTER_G35    // Enable to restore leveling setup after operation
+  //#define RESTORE_LEVELING_AFTER_G35    // Enable to restore leveling setup after operation
   //#define REPORT_TRAMMING_MM          // Report Z deviation (mm) for each point relative to the first
   //#define ASSISTED_TRAMMING_MENU_ITEM // Add a menu item for Assisted Tramming
 
@@ -1650,7 +1651,7 @@
  *
  * See https://marlinfw.org/docs/features/lin_advance.html for full instructions.
  */
-#define LIN_ADVANCE
+//#define LIN_ADVANCE
 #if ENABLED(LIN_ADVANCE)
   //#define EXTRA_LIN_ADVANCE_K // Enable for second linear advance constants
   #define LIN_ADVANCE_K 0.22    // Unit: mm compression per 1mm/s extruder speed
@@ -1693,10 +1694,10 @@
  * the probe to be unable to reach any points.
  */
 #if PROBE_SELECTED && !IS_KINEMATIC
-  //#define PROBING_MARGIN_LEFT PROBING_MARGIN
-  //#define PROBING_MARGIN_RIGHT PROBING_MARGIN
-  //#define PROBING_MARGIN_FRONT PROBING_MARGIN
-  //#define PROBING_MARGIN_BACK PROBING_MARGIN
+  #define PROBING_MARGIN_LEFT 21
+  #define PROBING_MARGIN_RIGHT PROBING_MARGIN
+  #define PROBING_MARGIN_FRONT PROBING_MARGIN
+  #define PROBING_MARGIN_BACK PROBING_MARGIN
 #endif
 
 #if EITHER(MESH_BED_LEVELING, AUTO_BED_LEVELING_UBL)
@@ -3233,6 +3234,9 @@
 
   #define USER_DESC_1 "Park"
   #define USER_GCODE_1 "G28\nG0 X75 Z75"
+
+  //#define USER_DESC_2 "Bed Tramming"
+  //#define USER_GCODE_2 "G35 S30"
 
   //#define USER_DESC_1 "Home & UBL Info"
   //#define USER_GCODE_1 "G28\nG29 W"
