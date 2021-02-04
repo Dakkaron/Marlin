@@ -130,6 +130,10 @@
   #define MOTHERBOARD BOARD_BTT_SKR_V1_1
 #endif
 
+// Swap T1 and T0 because T0 is dead
+#define TEMP_0_PIN                    P0_25_A2  // A1 (T1) - (68) - TEMP_0_PIN
+#define TEMP_1_PIN                    P0_24_A1  // A2 (T2) - (69) - TEMP_1_PIN
+
 // Name displayed in the LCD "Ready" message and Info menu
 #define CUSTOM_MACHINE_NAME "Tronxy X8 v2"
 
@@ -426,6 +430,8 @@
 #define TEMP_SENSOR_BED 1
 #define TEMP_SENSOR_PROBE 0
 #define TEMP_SENSOR_CHAMBER 0
+
+#define BOGUS_TEMPERATURE_GRACE_PERIOD 1000
 
 // Dummy thermistor constant temperature readings, for use with 998 and 999
 #define DUMMY_THERMISTOR_998_VALUE 25
