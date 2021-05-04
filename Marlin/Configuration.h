@@ -130,9 +130,9 @@
   #define MOTHERBOARD BOARD_BTT_SKR_V1_1
 #endif
 
-// Swap T1 and T0 because T0 is dead
-#define TEMP_0_PIN                    P0_25_A2  // A1 (T1) - (68) - TEMP_0_PIN
-#define TEMP_1_PIN                    P0_24_A1  // A2 (T2) - (69) - TEMP_1_PIN
+// Use P0_26_A3 instead of P0_24_A1 for Thermistor 0, since the original port is fried.
+#define TEMP_0_PIN                    P0_26_A3  // A1 (T1) - (68) - TEMP_0_PIN
+
 
 // Name displayed in the LCD "Ready" message and Info menu
 #define CUSTOM_MACHINE_NAME "Tronxy X8 v2"
