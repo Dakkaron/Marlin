@@ -54,14 +54,14 @@
 
 
 /**
- *               _____                                   _____
- *           NC | 1 2 | GND                          5V | 1 2 | GND
- *        RESET | 3 4 | 1.31                         NC | 3 4 | NC
- *         0.18 | 5 6   3.25                         NC | 5 6   0.15
- *         1.23 | 7 8 | 3.26                       0.16 | 7 8 | 0.18
- *         0.15 | 9 10| 0.17                       2.11 | 9 10| 1.30
- *               -----                                   -----
- *               EXP2                                    EXP1
+ *          ______                    ______
+ *      NC | 1  2 | GND           5V | 1  2 | GND
+ *   RESET | 3  4 | 1.31          NC | 3  4 | NC
+ *    0.18 | 5  6   3.25          NC | 5  6   0.15
+ *    1.23 | 7  8 | 3.26        0.16 | 7  8 | 0.18
+ *    0.15 | 9 10 | 0.17        2.11 | 9 10 | 1.30
+ *          ------                    ------
+ *           EXP2                      EXP1
  */
 
 #define EXP1_03_PIN                        -1
@@ -140,7 +140,7 @@
   // Using TMC devices in intelligent mode requires extra connections to each device. Unfortunately
   // the SKR does not have many free pins (especially if a display is in use). The SPI-based devices
   // will require 3 connections (clock, mosi, miso), plus a chip select line (CS) for each driver.
-  // The UART-based devices require 2 pis per deriver (one of which must be interrupt capable).
+  // The UART-based devices require 2 pis per driver (one of which must be interrupt capable).
   // The same SPI pins can be shared with the display/SD card reader, meaning SPI-based devices are
   // probably a good choice for this board.
   //
