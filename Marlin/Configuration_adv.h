@@ -769,7 +769,7 @@
 
 //#define HOMING_BACKOFF_POST_MM { 2, 2, 2 }  // (mm) Backoff from endstops after homing
 
-//#define QUICK_HOME                          // If G28 contains XY do a diagonal move first
+#define QUICK_HOME                          // If G28 contains XY do a diagonal move first
 //#define HOME_Y_BEFORE_X                     // If G28 contains XY home Y before X
 //#define HOME_Z_FIRST                        // Home Z first. Requires a Z-MIN endstop (not a probe).
 //#define CODEPENDENT_XY_HOMING               // If X/Y can't home without homing Y/X first
@@ -3709,11 +3709,11 @@
   //#define MAIN_MENU_ITEM_1_CONFIRM          // Show a confirmation dialog before this action
 
   #define MAIN_MENU_ITEM_2_DESC "Extruder 1"
-  #define MAIN_MENU_ITEM_2_GCODE "M280 P0 S180\nM211 S0\nG0 X-50.5\nM400\nM280 P0 S105\nG0 X0\nT0\nG0 X50\nM400\nM211 S1\nM282 P0"
+  #define MAIN_MENU_ITEM_2_GCODE "G28 X\nG0 X100 F40000\nT1\nM280 P0 S90\nM211 S0\nG0 X-50.5\nM400\nM280 P0 S1\nG0 X0\nT0\nG0 X50\nM400\nM211 S1\nM282 P0"
   //#define MAIN_MENU_ITEM_2_CONFIRM
 
   #define MAIN_MENU_ITEM_3_DESC "Extruder 2"
-  #define MAIN_MENU_ITEM_3_GCODE "M280 P0 S180\nM211 S0\nG0 X-25\nM400\nT1\nG0 X50\nM400\nM211 S1\nM282 P0"
+  #define MAIN_MENU_ITEM_3_GCODE "G28 X\nG0 X100 F40000\nT0\nM280 P0 S90\nM211 S0\nG0 X-25\nM400\nT1\nG0 X50\nM400\nM211 S1\nM282 P0"
   //#define MAIN_MENU_ITEM_3_CONFIRM
 
   //#define MAIN_MENU_ITEM_2_DESC "Preheat for " PREHEAT_1_LABEL
