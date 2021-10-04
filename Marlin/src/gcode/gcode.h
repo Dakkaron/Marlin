@@ -867,7 +867,6 @@ private:
     #if ENABLED(SERVO_DETACH_GCODE)
       static void M282();
     #endif
-    static void M282();
   #endif
 
   #if ENABLED(BABYSTEPPING)
