@@ -2926,4 +2926,4 @@
 // Edit servo angles with M281 and save to EEPROM with M500
 #define EDITABLE_SERVO_ANGLES
 
-#define SERVO0_PIN                         P1_29
+#define SERVO0_PIN                         P1_24
