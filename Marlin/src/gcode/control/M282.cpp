@@ -1,6 +1,6 @@
 /**
  * Marlin 3D Printer Firmware
- * Copyright (c) 2020 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
+ * Copyright (c) 2021 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
  *
  * Based on Sprinter and grbl.
  * Copyright (c) 2011 Camiel Gubbels / Erik van der Zalm
@@ -22,7 +22,7 @@
 
 #include "../../inc/MarlinConfig.h"
 
-#if HAS_SERVOS
+#if ENABLED(SERVO_DETACH_GCODE)
 
 #include "../gcode.h"
 #include "../../module/servo.h"
@@ -32,15 +32,14 @@
  */
 void GcodeSuite::M282() {
 
-  if (!parser.seen('P')) return;
+  if (!parser.seenval('P')) return;
 
   const int servo_index = parser.value_int();
-  if (WITHIN(servo_index, 0, NUM_SERVOS - 1)) {
+  if (WITHIN(servo_index, 0, NUM_SERVOS - 1))
     DETACH_SERVO(servo_index);
-  }
   else
-    SERIAL_ERROR_MSG("Servo ", servo_index, " out of range");
+    SERIAL_ECHO_MSG("Servo ", servo_index, " out of range");
 
 }
 
-#endif // HAS_SERVOS
+#endif // SERVO_DETACH_GCODE
