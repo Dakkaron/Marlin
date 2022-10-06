@@ -77,6 +77,8 @@
 #elif ENABLED(DWIN_LCD_PROUI)
   #include "../lcd/e3v2/proui/dwin.h"
   #include "../lcd/e3v2/proui/bedlevel_tools.h"
+#elif ENABLED(DWIN_CREALITY_LCD_JYERSUI)
+  #include "../lcd/e3v2/jyersui/dwin.h"
 #endif
 
 #if ENABLED(HOST_PROMPT_SUPPORT)
@@ -362,18 +364,18 @@ typedef struct SettingsDataStruct {
   //
   // PIDTEMP
   //
-  PIDCF_t hotendPID[HOTENDS];                           // M301 En PIDCF / M303 En U
+  raw_pidcf_t hotendPID[HOTENDS];                       // M301 En PIDCF / M303 En U
   int16_t lpq_len;                                      // M301 L
 
   //
   // PIDTEMPBED
   //
-  PID_t bedPID;                                         // M304 PID / M303 E-1 U
+  raw_pid_t bedPID;                                     // M304 PID / M303 E-1 U
 
   //
   // PIDTEMPCHAMBER
   //
-  PID_t chamberPID;                                     // M309 PID / M303 E-2 U
+  raw_pid_t chamberPID;                                 // M309 PID / M303 E-2 U
 
   //
   // User-defined Thermistors
@@ -400,8 +402,8 @@ typedef struct SettingsDataStruct {
   //
   // Display Sleep
   //
-  #if LCD_BACKLIGHT_TIMEOUT
-    uint16_t lcd_backlight_timeout;                     // M255 S
+  #if LCD_BACKLIGHT_TIMEOUT_MINS
+    uint8_t backlight_timeout_minutes;                  // M255 S
   #elif HAS_DISPLAY_SLEEP
     uint8_t sleep_timeout_minutes;                      // M255 S
   #endif
@@ -501,6 +503,8 @@ typedef struct SettingsDataStruct {
   //
   #if ENABLED(DWIN_LCD_PROUI)
     uint8_t dwin_data[eeprom_data_size];
+  #elif ENABLED(DWIN_CREALITY_LCD_JYERSUI)
+    uint8_t dwin_settings[CrealityDWIN.eeprom_data_size];
   #endif
 
   //
@@ -636,7 +640,7 @@ void MarlinSettings::postprocess() {
   TERN_(HAS_LCD_CONTRAST, ui.refresh_contrast());
   TERN_(HAS_LCD_BRIGHTNESS, ui.refresh_brightness());
 
-  #if LCD_BACKLIGHT_TIMEOUT
+  #if LCD_BACKLIGHT_TIMEOUT_MINS
     ui.refresh_backlight_timeout();
   #elif HAS_DISPLAY_SLEEP
     ui.refresh_screen_timeout();
@@ -1048,27 +1052,20 @@ void MarlinSettings::postprocess() {
     //
     {
       _FIELD_TEST(hotendPID);
+      #if DISABLED(PIDTEMP)
+        raw_pidcf_t pidcf = { NAN, NAN, NAN, NAN, NAN };
+      #endif
       HOTEND_LOOP() {
-        PIDCF_t pidcf = {
-          #if DISABLED(PIDTEMP)
-            NAN, NAN, NAN,
-            NAN, NAN
-          #else
-                         PID_PARAM(Kp, e),
-            unscalePID_i(PID_PARAM(Ki, e)),
-            unscalePID_d(PID_PARAM(Kd, e)),
-                         PID_PARAM(Kc, e),
-                         PID_PARAM(Kf, e)
-          #endif
-        };
+        #if ENABLED(PIDTEMP)
+          const hotend_pid_t &pid = thermalManager.temp_hotend[e].pid;
+          raw_pidcf_t pidcf = { pid.p(), pid.i(), pid.d(), pid.c(), pid.f() };
+        #endif
         EEPROM_WRITE(pidcf);
       }
 
       _FIELD_TEST(lpq_len);
-      #if DISABLED(PID_EXTRUSION_SCALING)
-        const int16_t lpq_len = 20;
-      #endif
-      EEPROM_WRITE(TERN(PID_EXTRUSION_SCALING, thermalManager.lpq_len, lpq_len));
+      const int16_t lpq_len = TERN(PID_EXTRUSION_SCALING, thermalManager.lpq_len, 20);
+      EEPROM_WRITE(lpq_len);
     }
 
     //
@@ -1076,17 +1073,12 @@ void MarlinSettings::postprocess() {
     //
     {
       _FIELD_TEST(bedPID);
-
-      const PID_t bed_pid = {
-        #if DISABLED(PIDTEMPBED)
-          NAN, NAN, NAN
-        #else
-          // Store the unscaled PID values
-          thermalManager.temp_bed.pid.Kp,
-          unscalePID_i(thermalManager.temp_bed.pid.Ki),
-          unscalePID_d(thermalManager.temp_bed.pid.Kd)
-        #endif
-      };
+      #if ENABLED(PIDTEMPBED)
+        const PID_t &pid = thermalManager.temp_bed.pid;
+        const raw_pid_t bed_pid = { pid.p(), pid.i(), pid.d() };
+      #else
+        const raw_pid_t bed_pid = { NAN, NAN, NAN };
+      #endif
       EEPROM_WRITE(bed_pid);
     }
 
@@ -1095,17 +1087,12 @@ void MarlinSettings::postprocess() {
     //
     {
       _FIELD_TEST(chamberPID);
-
-      const PID_t chamber_pid = {
-        #if DISABLED(PIDTEMPCHAMBER)
-          NAN, NAN, NAN
-        #else
-          // Store the unscaled PID values
-          thermalManager.temp_chamber.pid.Kp,
-          unscalePID_i(thermalManager.temp_chamber.pid.Ki),
-          unscalePID_d(thermalManager.temp_chamber.pid.Kd)
-        #endif
-      };
+      #if ENABLED(PIDTEMPCHAMBER)
+        const PID_t &pid = thermalManager.temp_chamber.pid;
+        const raw_pid_t chamber_pid = { pid.p(), pid.i(), pid.d() };
+      #else
+        const raw_pid_t chamber_pid = { NAN, NAN, NAN };
+      #endif
       EEPROM_WRITE(chamber_pid);
     }
 
@@ -1113,10 +1100,8 @@ void MarlinSettings::postprocess() {
     // User-defined Thermistors
     //
     #if HAS_USER_THERMISTORS
-    {
       _FIELD_TEST(user_thermistor);
       EEPROM_WRITE(thermalManager.user_thermistor);
-    }
     #endif
 
     //
@@ -1153,8 +1138,8 @@ void MarlinSettings::postprocess() {
     //
     // LCD Backlight / Sleep Timeout
     //
-    #if LCD_BACKLIGHT_TIMEOUT
-      EEPROM_WRITE(ui.lcd_backlight_timeout);
+    #if LCD_BACKLIGHT_TIMEOUT_MINS
+      EEPROM_WRITE(ui.backlight_timeout_minutes);
     #elif HAS_DISPLAY_SLEEP
       EEPROM_WRITE(ui.sleep_timeout_minutes);
     #endif
@@ -1516,6 +1501,15 @@ void MarlinSettings::postprocess() {
       char dwin_data[eeprom_data_size] = { 0 };
       DWIN_CopySettingsTo(dwin_data);
       EEPROM_WRITE(dwin_data);
+    }
+    #endif
+
+    #if ENABLED(DWIN_CREALITY_LCD_JYERSUI)
+    {
+      _FIELD_TEST(dwin_settings);
+      char dwin_settings[CrealityDWIN.eeprom_data_size] = { 0 };
+      CrealityDWIN.Save_Settings(dwin_settings);
+      EEPROM_WRITE(dwin_settings);
     }
     #endif
 
@@ -1990,17 +1984,11 @@ void MarlinSettings::postprocess() {
       //
       {
         HOTEND_LOOP() {
-          PIDCF_t pidcf;
+          raw_pidcf_t pidcf;
           EEPROM_READ(pidcf);
           #if ENABLED(PIDTEMP)
-            if (!validating && !isnan(pidcf.Kp)) {
-              // Scale PID values since EEPROM values are unscaled
-              PID_PARAM(Kp, e) = pidcf.Kp;
-              PID_PARAM(Ki, e) = scalePID_i(pidcf.Ki);
-              PID_PARAM(Kd, e) = scalePID_d(pidcf.Kd);
-              TERN_(PID_EXTRUSION_SCALING, PID_PARAM(Kc, e) = pidcf.Kc);
-              TERN_(PID_FAN_SCALING, PID_PARAM(Kf, e) = pidcf.Kf);
-            }
+            if (!validating && !isnan(pidcf.p))
+              thermalManager.temp_hotend[e].pid.set(pidcf);
           #endif
         }
       }
@@ -2022,15 +2010,11 @@ void MarlinSettings::postprocess() {
       // Heated Bed PID
       //
       {
-        PID_t pid;
+        raw_pid_t pid;
         EEPROM_READ(pid);
         #if ENABLED(PIDTEMPBED)
-          if (!validating && !isnan(pid.Kp)) {
-            // Scale PID values since EEPROM values are unscaled
-            thermalManager.temp_bed.pid.Kp = pid.Kp;
-            thermalManager.temp_bed.pid.Ki = scalePID_i(pid.Ki);
-            thermalManager.temp_bed.pid.Kd = scalePID_d(pid.Kd);
-          }
+          if (!validating && !isnan(pid.p))
+            thermalManager.temp_bed.pid.set(pid);
         #endif
       }
 
@@ -2038,15 +2022,11 @@ void MarlinSettings::postprocess() {
       // Heated Chamber PID
       //
       {
-        PID_t pid;
+        raw_pid_t pid;
         EEPROM_READ(pid);
         #if ENABLED(PIDTEMPCHAMBER)
-          if (!validating && !isnan(pid.Kp)) {
-            // Scale PID values since EEPROM values are unscaled
-            thermalManager.temp_chamber.pid.Kp = pid.Kp;
-            thermalManager.temp_chamber.pid.Ki = scalePID_i(pid.Ki);
-            thermalManager.temp_chamber.pid.Kd = scalePID_d(pid.Kd);
-          }
+          if (!validating && !isnan(pid.p))
+            thermalManager.temp_chamber.pid.set(pid);
         #endif
       }
 
@@ -2095,8 +2075,8 @@ void MarlinSettings::postprocess() {
       //
       // LCD Backlight / Sleep Timeout
       //
-      #if LCD_BACKLIGHT_TIMEOUT
-        EEPROM_READ(ui.lcd_backlight_timeout);
+      #if LCD_BACKLIGHT_TIMEOUT_MINS
+        EEPROM_READ(ui.backlight_timeout_minutes);
       #elif HAS_DISPLAY_SLEEP
         EEPROM_READ(ui.sleep_timeout_minutes);
       #endif
@@ -2482,6 +2462,13 @@ void MarlinSettings::postprocess() {
         _FIELD_TEST(dwin_data);
         EEPROM_READ(dwin_data);
         if (!validating) DWIN_CopySettingsFrom(dwin_data);
+      }
+      #elif ENABLED(DWIN_CREALITY_LCD_JYERSUI)
+      {
+        const char dwin_settings[CrealityDWIN.eeprom_data_size] = { 0 };
+        _FIELD_TEST(dwin_settings);
+        EEPROM_READ(dwin_settings);
+        if (!validating) CrealityDWIN.Load_Settings(dwin_settings);
       }
       #endif
 
@@ -2920,6 +2907,8 @@ void MarlinSettings::reset() {
     #endif
   #endif
 
+  TERN_(DWIN_CREALITY_LCD_JYERSUI, CrealityDWIN.Reset_Settings());
+
   //
   // Case Light Brightness
   //
@@ -3120,11 +3109,13 @@ void MarlinSettings::reset() {
       #define PID_DEFAULT(N,E) DEFAULT_##N
     #endif
     HOTEND_LOOP() {
-      PID_PARAM(Kp, e) =      float(PID_DEFAULT(Kp, ALIM(e, defKp)));
-      PID_PARAM(Ki, e) = scalePID_i(PID_DEFAULT(Ki, ALIM(e, defKi)));
-      PID_PARAM(Kd, e) = scalePID_d(PID_DEFAULT(Kd, ALIM(e, defKd)));
-      TERN_(PID_EXTRUSION_SCALING, PID_PARAM(Kc, e) = float(PID_DEFAULT(Kc, ALIM(e, defKc))));
-      TERN_(PID_FAN_SCALING, PID_PARAM(Kf, e) = float(PID_DEFAULT(Kf, ALIM(e, defKf))));
+      thermalManager.temp_hotend[e].pid.set(
+        PID_DEFAULT(Kp, ALIM(e, defKp)),
+        PID_DEFAULT(Ki, ALIM(e, defKi)),
+        PID_DEFAULT(Kd, ALIM(e, defKd))
+        OPTARG(PID_EXTRUSION_SCALING, PID_DEFAULT(Kc, ALIM(e, defKc)))
+        OPTARG(PID_FAN_SCALING, PID_DEFAULT(Kf, ALIM(e, defKf)))
+      );
     }
   #endif
 
@@ -3138,9 +3129,7 @@ void MarlinSettings::reset() {
   //
 
   #if ENABLED(PIDTEMPBED)
-    thermalManager.temp_bed.pid.Kp = DEFAULT_bedKp;
-    thermalManager.temp_bed.pid.Ki = scalePID_i(DEFAULT_bedKi);
-    thermalManager.temp_bed.pid.Kd = scalePID_d(DEFAULT_bedKd);
+    thermalManager.temp_bed.pid.set(DEFAULT_bedKp, DEFAULT_bedKi, DEFAULT_bedKd);
   #endif
 
   //
@@ -3148,9 +3137,7 @@ void MarlinSettings::reset() {
   //
 
   #if ENABLED(PIDTEMPCHAMBER)
-    thermalManager.temp_chamber.pid.Kp = DEFAULT_chamberKp;
-    thermalManager.temp_chamber.pid.Ki = scalePID_i(DEFAULT_chamberKi);
-    thermalManager.temp_chamber.pid.Kd = scalePID_d(DEFAULT_chamberKd);
+    thermalManager.temp_chamber.pid.set(DEFAULT_chamberKp, DEFAULT_chamberKi, DEFAULT_chamberKd);
   #endif
 
   //
@@ -3176,8 +3163,8 @@ void MarlinSettings::reset() {
   //
   // LCD Backlight / Sleep Timeout
   //
-  #if LCD_BACKLIGHT_TIMEOUT
-    ui.lcd_backlight_timeout = LCD_BACKLIGHT_TIMEOUT;
+  #if LCD_BACKLIGHT_TIMEOUT_MINS
+    ui.backlight_timeout_minutes = LCD_BACKLIGHT_TIMEOUT_MINS;
   #elif HAS_DISPLAY_SLEEP
     ui.sleep_timeout_minutes = DISPLAY_SLEEP_MINUTES;
   #endif
@@ -3320,14 +3307,15 @@ void MarlinSettings::reset() {
     static_assert(COUNT(_filament_heat_capacity_permm) == HOTENDS, "FILAMENT_HEAT_CAPACITY_PERMM must have HOTENDS items.");
 
     HOTEND_LOOP() {
-      thermalManager.temp_hotend[e].constants.heater_power = _mpc_heater_power[e];
-      thermalManager.temp_hotend[e].constants.block_heat_capacity = _mpc_block_heat_capacity[e];
-      thermalManager.temp_hotend[e].constants.sensor_responsiveness = _mpc_sensor_responsiveness[e];
-      thermalManager.temp_hotend[e].constants.ambient_xfer_coeff_fan0 = _mpc_ambient_xfer_coeff[e];
+      MPC_t &constants = thermalManager.temp_hotend[e].constants;
+      constants.heater_power = _mpc_heater_power[e];
+      constants.block_heat_capacity = _mpc_block_heat_capacity[e];
+      constants.sensor_responsiveness = _mpc_sensor_responsiveness[e];
+      constants.ambient_xfer_coeff_fan0 = _mpc_ambient_xfer_coeff[e];
       #if ENABLED(MPC_INCLUDE_FAN)
-        thermalManager.temp_hotend[e].constants.fan255_adjustment = _mpc_ambient_xfer_coeff_fan255[e] - _mpc_ambient_xfer_coeff[e];
+        constants.fan255_adjustment = _mpc_ambient_xfer_coeff_fan255[e] - _mpc_ambient_xfer_coeff[e];
       #endif
-      thermalManager.temp_hotend[e].constants.filament_heat_capacity_permm = _filament_heat_capacity_permm[e];
+      constants.filament_heat_capacity_permm = _filament_heat_capacity_permm[e];
     }
   #endif
 
