@@ -1952,6 +1952,15 @@ void prepare_line_to_destination() {
 
   void homeaxis(const AxisEnum axis) {
 
+    if (axis == I_AXIS) {
+      set_axis_is_at_home(axis);
+      do_blocking_move_to(
+        NUM_AXIS_LIST_(current_position.x, current_position.y, current_position.z, 100, current_position.j, current_position.k,
+                      current_position.u, current_position.v, current_position.w)
+        1000);
+      return;
+    }
+
     #if ANY(MORGAN_SCARA, MP_SCARA)
       // Only Z homing (with probe) is permitted
       if (axis != Z_AXIS) { BUZZ(100, 880); return; }

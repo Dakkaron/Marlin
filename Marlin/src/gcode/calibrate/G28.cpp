@@ -475,8 +475,18 @@ void GcodeSuite::G28() {
 
     #if HAS_Y_AXIS
       // Home Y (after X)
-      if (DISABLED(HOME_Y_BEFORE_X) && doY)
+      if (DISABLED(HOME_Y_BEFORE_X) && doY) {
+        #ifdef Y_SAFE_HOMING_X_POS
+          sync_plan_position();
+          constexpr xy_float_t safe_homing_xy = {  current_position.x, Y_SAFE_HOMING_X_POS };
+          destination.set(safe_homing_xy, current_position.z);
+          if (position_is_reachable(destination)) {
+            do_blocking_move_to_xy(destination);
+          }
+        #endif
+
         homeaxis(Y_AXIS);
+      }
     #endif
 
     #if ALL(FOAMCUTTER_XYUV, HAS_J_AXIS)

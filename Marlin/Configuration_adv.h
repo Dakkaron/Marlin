@@ -1030,11 +1030,11 @@
 //
 // Add the G35 command to read bed corners to help adjust screws. Requires a bed probe.
 //
-//#define ASSISTED_TRAMMING
+#define ASSISTED_TRAMMING
 #if ENABLED(ASSISTED_TRAMMING)
 
   // Define from 3 to 9 points to probe.
-  #define TRAMMING_POINT_XY { {  20, 20 }, { 180,  20 }, { 180, 180 }, { 20, 180 } }
+  #define TRAMMING_POINT_XY { {  20, 43 }, { 180,  43 }, { 180, 150 }, { 20, 150 } }
 
   // Define position names for probe points.
   #define TRAMMING_POINT_NAME_1 "Front-Left"
@@ -1045,7 +1045,7 @@
   #define RESTORE_LEVELING_AFTER_G35    // Enable to restore leveling setup after operation
   //#define REPORT_TRAMMING_MM          // Report Z deviation (mm) for each point relative to the first
 
-  //#define ASSISTED_TRAMMING_WIZARD    // Add a Tramming Wizard to the LCD menu
+  #define ASSISTED_TRAMMING_WIZARD    // Add a Tramming Wizard to the LCD menu
 
   //#define ASSISTED_TRAMMING_WAIT_POSITION { X_CENTER, Y_CENTER, 30 } // Move the nozzle out of the way for adjustment
 
@@ -1378,7 +1378,7 @@
 //#define LCD_BACKLIGHT_TIMEOUT_MINS 1  // (minutes) Timeout before turning off the backlight
 
 #if HAS_BED_PROBE && EITHER(HAS_MARLINUI_MENU, HAS_TFT_LVGL_UI)
-  //#define PROBE_OFFSET_WIZARD       // Add a Probe Z Offset calibration option to the LCD menu
+  #define PROBE_OFFSET_WIZARD       // Add a Probe Z Offset calibration option to the LCD menu
   #if ENABLED(PROBE_OFFSET_WIZARD)
     /**
      * Enable to init the Probe Z-Offset when starting the Wizard.
@@ -2067,7 +2067,7 @@
 #if ENABLED(BABYSTEPPING)
   //#define INTEGRATED_BABYSTEPPING         // EXPERIMENTAL integration of babystepping into the Stepper ISR
   //#define BABYSTEP_WITHOUT_HOMING
-  //#define BABYSTEP_ALWAYS_AVAILABLE       // Allow babystepping at all times (not just during movement)
+  #define BABYSTEP_ALWAYS_AVAILABLE       // Allow babystepping at all times (not just during movement)
   //#define BABYSTEP_XY                     // Also enable X/Y Babystepping. Not supported on DELTA!
   #define BABYSTEP_INVERT_Z false           // Change if Z babysteps should go the other way
   //#define BABYSTEP_MILLIMETER_UNITS       // Specify BABYSTEP_MULTIPLICATOR_(XY|Z) in mm instead of micro-steps
@@ -2086,10 +2086,10 @@
 
   #define BABYSTEP_DISPLAY_TOTAL          // Display total babysteps since last G28
 
-  //#define BABYSTEP_ZPROBE_OFFSET          // Combine M851 Z and Babystepping
+  #define BABYSTEP_ZPROBE_OFFSET          // Combine M851 Z and Babystepping
   #if ENABLED(BABYSTEP_ZPROBE_OFFSET)
-    //#define BABYSTEP_HOTEND_Z_OFFSET      // For multiple hotends, babystep relative Z offsets
-    //#define BABYSTEP_ZPROBE_GFX_OVERLAY   // Enable graphical overlay on Z-offset editor
+    #define BABYSTEP_HOTEND_Z_OFFSET      // For multiple hotends, babystep relative Z offsets
+    #define BABYSTEP_ZPROBE_GFX_OVERLAY   // Enable graphical overlay on Z-offset editor
   #endif
 #endif
 
@@ -3167,7 +3167,7 @@
    * Comment *_STALL_SENSITIVITY to disable sensorless homing for that axis.
    * @section tmc/stallguard
    */
-  //#define SENSORLESS_HOMING // StallGuard capable drivers only
+  #define SENSORLESS_HOMING // StallGuard capable drivers only
 
   #if EITHER(SENSORLESS_HOMING, SENSORLESS_PROBING)
     // TMC2209: 0...255. TMC2130: -64...63
@@ -3764,19 +3764,19 @@
   #define MAIN_MENU_ITEM_2_CONFIRM          // Show a confirmation dialog before this action
 
   #define MAIN_MENU_ITEM_3_DESC "Park1"
-  #define MAIN_MENU_ITEM_3_GCODE "G0 X132 Y80 F5000\nG0 A100 F2000\nG0 Y0\nG0 A50 F1000\nM18 A\nG0 Y80 F2000"
+  #define MAIN_MENU_ITEM_3_GCODE "G0 X-13.8 Y160 F5000\nG0 A100 F2000\nM18 A\nG0 Y233.3 F2000\nG0 A50 F1000\nM18 A\nG0 Y160 F5000"
   #define MAIN_MENU_ITEM_3_CONFIRM          // Show a confirmation dialog before this action
 
   #define MAIN_MENU_ITEM_4_DESC "Pickup1"
-  #define MAIN_MENU_ITEM_4_GCODE "G0 X132 Y80 F5000\nG0 A50 F2000\nM18 A\nG0 Y0 F2000\nG0 A100 F1000\nM18 A\nG0 Y80 F5000\nT0 S1"
+  #define MAIN_MENU_ITEM_4_GCODE "G0 X-13.8 Y160 F5000\nG0 A50 F2000\nM18 A\nG0 Y233.3 F2000\nG0 A100 F1000\nM18 A\nG0 Y160 F5000\nT0 S1"
   #define MAIN_MENU_ITEM_4_CONFIRM          // Show a confirmation dialog before this action
 
   #define MAIN_MENU_ITEM_5_DESC "Park2"
-  #define MAIN_MENU_ITEM_5_GCODE "G0 X221 Y80 F5000\nG0 A100 F2000\nG0 Y0\nG0 A50 F1000\nM18 A\nG0 Y80 F2000"
+  #define MAIN_MENU_ITEM_5_GCODE "G0 X240.2 Y160 F5000\nG0 A100 F2000\nM18 A\nG0 Y217.1 F2000\nG0 A50 F1000\nM18 A\nG0 Y160 F5000"
   #define MAIN_MENU_ITEM_5_CONFIRM          // Show a confirmation dialog before this action
 
   #define MAIN_MENU_ITEM_6_DESC "Pickup2"
-  #define MAIN_MENU_ITEM_6_GCODE "G0 X221 Y80 F5000\nG0 A50 F2000\nM18 A\nG0 Y0 F2000\nG0 A100 F1000\nM18 A\nG0 Y80 F5000\nT1 S1"
+  #define MAIN_MENU_ITEM_6_GCODE "G0 X240.2 Y160 F5000\nG0 A50 F2000\nM18 A\nG0 Y217.1 F2000\nG0 A100 F1000\nM18 A\nG0 Y160 F5000\nT1 S1"
   #define MAIN_MENU_ITEM_6_CONFIRM          // Show a confirmation dialog before this action*/
 
   /*#define MAIN_MENU_ITEM_1_DESC "Home & UBL Info"
@@ -3812,7 +3812,7 @@
   #define CUSTOM_MENU_CONFIG_ONLY_IDLE        // Only show custom menu when the machine is idle
 
   #define CONFIG_MENU_ITEM_1_DESC "Home A"
-  #define CONFIG_MENU_ITEM_1_GCODE "G0 A0 F1000\nG0 A100 F1000\nG0 A50 F1000\nM18 A"
+  #define CONFIG_MENU_ITEM_1_GCODE "G28 A S\nG0 A100 F1000\nG0 A0 F1000\nG0 A50 F1000\nM18 A"
   //#define CONFIG_MENU_ITEM_1_CONFIRM        // Show a confirmation dialog before this action
 
   //#define CONFIG_MENU_ITEM_2_DESC "Bluetooth ON"

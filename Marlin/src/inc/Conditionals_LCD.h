@@ -443,7 +443,7 @@
 #endif
 
 #define _OR_HAS_DA(A) ENABLED(DISABLE_##A) ||
-#if MAP(_OR_HAS_DA, X, Y, Z, I, J, K, U, V, W) 0
+#if MAP(_OR_HAS_DA, X, Y, Z, J, K, U, V, W) 0
   #define HAS_DISABLE_MAIN_AXES 1
 #endif
 #if HAS_DISABLE_MAIN_AXES || ENABLED(DISABLE_E)
